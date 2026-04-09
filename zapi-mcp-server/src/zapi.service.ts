@@ -1,22 +1,13 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
-
-const INSTANCE_ID = process.env.ZAPI_INSTANCE_ID ?? "";
-const TOKEN = process.env.ZAPI_TOKEN ?? "";
-const CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN ?? "";
-
-const BASE_URL = `https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}`;
+import { getCreds } from "./context.js";
 
 function client(): AxiosInstance {
-  if (!INSTANCE_ID || !TOKEN) {
-    throw new Error(
-      "Z-API credentials missing. Set ZAPI_INSTANCE_ID and ZAPI_TOKEN env vars."
-    );
-  }
+  const { instanceId, token, clientToken } = getCreds();
   return axios.create({
-    baseURL: BASE_URL,
+    baseURL: `https://api.z-api.io/instances/${instanceId}/token/${token}`,
     headers: {
       "Content-Type": "application/json",
-      ...(CLIENT_TOKEN ? { "Client-Token": CLIENT_TOKEN } : {}),
+      ...(clientToken ? { "Client-Token": clientToken } : {}),
     },
     timeout: 30000,
   });

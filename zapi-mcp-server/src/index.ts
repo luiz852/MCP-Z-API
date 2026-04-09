@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import express from "express";
 import { registerZapiTools } from "./tools/zapi.tools.js";
+import { credsStorage } from "./context.js";
 
 const server = new McpServer({
   name: "zapi-mcp-server",
@@ -20,13 +21,26 @@ async function runHTTP(): Promise<void> {
   });
 
   app.post("/mcp", async (req, res) => {
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-      enableJsonResponse: true,
+    const h = req.headers;
+    const pick = (k: string) => {
+      const v = h[k.toLowerCase()];
+      return Array.isArray(v) ? v[0] : v ?? "";
+    };
+    const creds = {
+      instanceId: pick("x-zapi-instance-id"),
+      token: pick("x-zapi-token"),
+      clientToken: pick("x-zapi-client-token"),
+    };
+
+    await credsStorage.run(creds, async () => {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+        enableJsonResponse: true,
+      });
+      res.on("close", () => transport.close());
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
     });
-    res.on("close", () => transport.close());
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
   });
 
   const port = parseInt(process.env.PORT ?? "3000");
