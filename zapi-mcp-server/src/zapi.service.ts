@@ -151,4 +151,132 @@ export const zapiService = {
       handleError(e);
     }
   },
+
+  async sendVideo(phone: string, video: string, caption?: string) {
+    try {
+      const { data } = await client().post("/send-video", { phone, video, caption });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendSticker(phone: string, sticker: string) {
+    try {
+      const { data } = await client().post("/send-sticker", { phone, sticker });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendLocation(phone: string, latitude: number, longitude: number, title?: string, address?: string) {
+    try {
+      const { data } = await client().post("/send-location", { phone, latitude, longitude, title, address });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendContact(phone: string, contactName: string, contactPhone: string, contactBusinessDescription?: string) {
+    try {
+      const { data } = await client().post("/send-contact", {
+        phone,
+        contactName,
+        contactPhone,
+        contactBusinessDescription,
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendLink(phone: string, message: string, image: string, linkUrl: string, title: string, linkDescription?: string) {
+    try {
+      const { data } = await client().post("/send-link", {
+        phone,
+        message,
+        image,
+        linkUrl,
+        title,
+        linkDescription,
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendPoll(phone: string, message: string, poll: string[]) {
+    try {
+      const { data } = await client().post("/send-poll", {
+        phone,
+        message,
+        poll,
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async deleteMessage(phone: string, messageId: string, owner: string) {
+    try {
+      const { data } = await client().delete("/messages", {
+        params: { phone, messageId, owner },
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async reactToMessage(phone: string, messageId: string, reaction: string) {
+    try {
+      const { data } = await client().post("/send-reaction", {
+        phone,
+        messageId,
+        reaction,
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async markAsRead(phone: string, messageId?: string) {
+    try {
+      const { data } = await client().post("/read-message", { phone, messageId });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async sendOptionList(phone: string, message: string, title: string, buttonLabel: string, options: Array<{ title: string; description?: string; id?: string }>) {
+    try {
+      const { data } = await client().post("/send-option-list", {
+        phone,
+        message,
+        optionList: {
+          title,
+          buttonLabel,
+          options,
+        },
+      });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async createGroup(groupName: string, phones: string[]) {
+    try {
+      const { data } = await client().post("/create-group", { groupName, phones });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async addGroupParticipant(groupId: string, phones: string[]) {
+    try {
+      const { data } = await client().post("/add-participant", { groupId, phones });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async removeGroupParticipant(groupId: string, phones: string[]) {
+    try {
+      const { data } = await client().post("/remove-participant", { groupId, phones });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async leaveGroup(groupId: string) {
+    try {
+      const { data } = await client().post("/leave-group", { groupId });
+      return data;
+    } catch (e) { handleError(e); }
+  },
 };
