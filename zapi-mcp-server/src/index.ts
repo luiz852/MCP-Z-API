@@ -26,11 +26,19 @@ async function runHTTP(): Promise<void> {
       const v = h[k.toLowerCase()];
       return Array.isArray(v) ? v[0] : v ?? "";
     };
-    const creds = {
-      instanceId: pick("x-zapi-instance-id"),
-      token: pick("x-zapi-token"),
-      clientToken: pick("x-zapi-client-token"),
-    };
+    // Supports either 3 separate headers OR a single "X-Zapi-Auth" header
+    // with format: "instanceId:token:clientToken"
+    let instanceId = pick("x-zapi-instance-id");
+    let token = pick("x-zapi-token");
+    let clientToken = pick("x-zapi-client-token");
+    const combined = pick("x-zapi-auth");
+    if (combined && (!instanceId || !token)) {
+      const parts = combined.split(":");
+      instanceId = instanceId || parts[0] || "";
+      token = token || parts[1] || "";
+      clientToken = clientToken || parts[2] || "";
+    }
+    const creds = { instanceId, token, clientToken };
 
     await credsStorage.run(creds, async () => {
       const transport = new StreamableHTTPServerTransport({
