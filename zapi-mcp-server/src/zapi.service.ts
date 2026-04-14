@@ -270,4 +270,25 @@ export const zapiService = {
       return data;
     } catch (e) { handleError(e); }
   },
+
+  async getGroups(page = 1, pageSize = 50) {
+    try {
+      const { data } = await client().get("/groups", { params: { page, pageSize } });
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async getGroupInfo(groupId: string) {
+    try {
+      const { data } = await client().get(`/group-info/${groupId}`);
+      return data;
+    } catch (e) { handleError(e); }
+  },
+
+  async getGroupParticipants(groupId: string) {
+    try {
+      const { data } = await client().get(`/group-participants/${groupId}`);
+      return data;
+    } catch (e) { handleError(e); }
+  },
 };

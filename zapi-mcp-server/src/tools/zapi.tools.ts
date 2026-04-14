@@ -428,6 +428,45 @@ export function registerZapiTools(server: McpServer): void {
   );
 
   server.registerTool(
+    "get_groups",
+    {
+      title: "List WhatsApp Groups",
+      description: "List all WhatsApp groups. Returns group name, ID (phone field), unread count, etc. Use the 'phone' field from the result as groupId to send messages or manage the group.",
+      inputSchema: {
+        page: z.number().int().positive().default(1).optional(),
+        pageSize: z.number().int().positive().max(200).default(50).optional(),
+      },
+    },
+    async ({ page, pageSize }) => {
+      try { return ok(await zapiService.getGroups(page, pageSize)); } catch (e) { return fail(e); }
+    }
+  );
+
+  server.registerTool(
+    "get_group_info",
+    {
+      title: "Get Group Info",
+      description: "Get detailed info about a specific group (name, description, creation date, owner, etc).",
+      inputSchema: { groupId: z.string().describe("Group ID from get_groups 'phone' field, e.g. '5511999999999-group'") },
+    },
+    async ({ groupId }) => {
+      try { return ok(await zapiService.getGroupInfo(groupId)); } catch (e) { return fail(e); }
+    }
+  );
+
+  server.registerTool(
+    "get_group_participants",
+    {
+      title: "Get Group Participants",
+      description: "List all participants of a WhatsApp group.",
+      inputSchema: { groupId: z.string() },
+    },
+    async ({ groupId }) => {
+      try { return ok(await zapiService.getGroupParticipants(groupId)); } catch (e) { return fail(e); }
+    }
+  );
+
+  server.registerTool(
     "get_instance_status",
     {
       title: "Get Instance Status",
