@@ -20,12 +20,21 @@ async function runHTTP(): Promise<void> {
     res.json({ status: "ok", server: "zapi-mcp-server", version: "1.0.0" });
   });
 
+  app.get("/debug/headers", (req, res) => {
+    res.json({ headers: req.headers });
+  });
+
   app.post("/mcp", async (req, res) => {
     const h = req.headers;
     const pick = (k: string) => {
       const v = h[k.toLowerCase()];
       return Array.isArray(v) ? v[0] : v ?? "";
     };
+    // Log all non-standard headers we receive (for debugging multi-tenant)
+    const zapiHeaders = Object.keys(h).filter((k) => k.toLowerCase().startsWith("x-zapi"));
+    console.error(
+      `[mcp] received headers: ${zapiHeaders.length ? zapiHeaders.join(", ") : "NONE (x-zapi-*)"}`
+    );
     // Supports either 3 separate headers OR a single "X-Zapi-Auth" header
     // with format: "instanceId:token:clientToken"
     let instanceId = pick("x-zapi-instance-id");
