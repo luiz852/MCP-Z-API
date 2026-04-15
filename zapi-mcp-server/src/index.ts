@@ -24,22 +24,24 @@ async function runHTTP(): Promise<void> {
     res.json({ headers: req.headers });
   });
 
-  app.post("/mcp", async (req, res) => {
+  const mcpHandler = async (req: express.Request, res: express.Response) => {
     const h = req.headers;
     const pick = (k: string) => {
       const v = h[k.toLowerCase()];
       return Array.isArray(v) ? v[0] : v ?? "";
     };
-    // Log all non-standard headers we receive (for debugging multi-tenant)
-    const zapiHeaders = Object.keys(h).filter((k) => k.toLowerCase().startsWith("x-zapi"));
-    console.error(
-      `[mcp] received headers: ${zapiHeaders.length ? zapiHeaders.join(", ") : "NONE (x-zapi-*)"}`
-    );
-    // Supports either 3 separate headers OR a single "X-Zapi-Auth" header
-    // with format: "instanceId:token:clientToken"
-    let instanceId = pick("x-zapi-instance-id");
-    let token = pick("x-zapi-token");
-    let clientToken = pick("x-zapi-client-token");
+
+    // Priority 1: URL path params (/mcp/:instanceId/:token/:clientToken)
+    let instanceId = req.params.instanceId || "";
+    let token = req.params.token || "";
+    let clientToken = req.params.clientToken || "";
+
+    // Priority 2: separate headers
+    if (!instanceId) instanceId = pick("x-zapi-instance-id");
+    if (!token) token = pick("x-zapi-token");
+    if (!clientToken) clientToken = pick("x-zapi-client-token");
+
+    // Priority 3: single combined header X-Zapi-Auth = "instanceId:token:clientToken"
     const combined = pick("x-zapi-auth");
     if (combined && (!instanceId || !token)) {
       const parts = combined.split(":");
@@ -47,6 +49,11 @@ async function runHTTP(): Promise<void> {
       token = token || parts[1] || "";
       clientToken = clientToken || parts[2] || "";
     }
+
+    console.error(
+      `[mcp] auth source: ${req.params.instanceId ? "url-path" : instanceId ? "header" : "NONE"}`
+    );
+
     const creds = { instanceId, token, clientToken };
 
     await credsStorage.run(creds, async () => {
@@ -58,7 +65,12 @@ async function runHTTP(): Promise<void> {
       await server.connect(transport);
       await transport.handleRequest(req, res, req.body);
     });
-  });
+  };
+
+  // URL-embedded credentials (works for platforms that don't forward custom headers)
+  app.post("/mcp/:instanceId/:token/:clientToken", mcpHandler);
+  // Original endpoint — credentials via headers or env
+  app.post("/mcp", mcpHandler);
 
   const port = parseInt(process.env.PORT ?? "3000");
   app.listen(port, "0.0.0.0", () => {
