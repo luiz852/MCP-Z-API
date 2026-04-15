@@ -61,8 +61,8 @@ async function runHTTP(): Promise<void> {
   });
 
   const port = parseInt(process.env.PORT ?? "3000");
-  app.listen(port, () => {
-    console.error(`zapi-mcp-server running at http://localhost:${port}/mcp`);
+  app.listen(port, "0.0.0.0", () => {
+    console.error(`zapi-mcp-server running on 0.0.0.0:${port}`);
   });
 }
 
