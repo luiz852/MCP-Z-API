@@ -280,14 +280,14 @@ export const zapiService = {
 
   async getGroupInfo(groupId: string) {
     try {
-      const { data } = await client().get(`/group-info/${groupId}`);
+      const { data } = await client().get(`/group-metadata/${groupId}`);
       return data;
     } catch (e) { handleError(e); }
   },
 
-  async getGroupParticipants(groupId: string) {
+  async getGroupInfoLight(groupId: string) {
     try {
-      const { data } = await client().get(`/group-participants/${groupId}`);
+      const { data } = await client().get(`/light-group-metadata/${groupId}`);
       return data;
     } catch (e) { handleError(e); }
   },

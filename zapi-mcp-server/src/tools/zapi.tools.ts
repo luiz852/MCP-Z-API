@@ -445,9 +445,9 @@ export function registerZapiTools(server: McpServer): void {
   server.registerTool(
     "get_group_info",
     {
-      title: "Get Group Info",
-      description: "Get detailed info about a specific group (name, description, creation date, owner, etc).",
-      inputSchema: { groupId: z.string().describe("Group ID from get_groups 'phone' field, e.g. '5511999999999-group'") },
+      title: "Get Group Info (full metadata)",
+      description: "Return full metadata of a specific WhatsApp group by its ID: name (subject), description, owner, creation timestamp, invitation link, settings, AND the full participants list with admin flags. Accepts IDs like '120363404142192358-group' or with '@g.us' suffix.",
+      inputSchema: { groupId: z.string().describe("Group ID, e.g. '120363404142192358-group'") },
     },
     async ({ groupId }) => {
       try { return ok(await zapiService.getGroupInfo(groupId)); } catch (e) { return fail(e); }
@@ -455,14 +455,14 @@ export function registerZapiTools(server: McpServer): void {
   );
 
   server.registerTool(
-    "get_group_participants",
+    "get_group_info_light",
     {
-      title: "Get Group Participants",
-      description: "List all participants of a WhatsApp group.",
+      title: "Get Group Info (lightweight)",
+      description: "Return lightweight metadata of a group (same as get_group_info but faster, without invitation link). Use when you only need name/description/participants.",
       inputSchema: { groupId: z.string() },
     },
     async ({ groupId }) => {
-      try { return ok(await zapiService.getGroupParticipants(groupId)); } catch (e) { return fail(e); }
+      try { return ok(await zapiService.getGroupInfoLight(groupId)); } catch (e) { return fail(e); }
     }
   );
 
